@@ -48,17 +48,22 @@ Treat as drafts until executed.
 
 | | |
 |---|---|
-| `15_plausibly_exogenous.R` | Conley-Hansen-Rossi bounds, γ calibrated from a zero-first-stage sample (van Kippersluis & Rietveld 2018) |
-| `16_seasonal_windows.R` | Five quarter-specific VPD windows against agriculture, fire and rescues |
-| `17_channel_triage.R` | Crop-year alignment, contamination gradient, channel sign |
+| `23_climate.py` | TerraClimate pull, 13 variables, four seasonal windows, municipality-year |
+| `degree_days.py` | Schlenker-Roberts GDD/EDD from the on-disk daily ERA5. Helper to 23. |
+| `24_patch_metrics_500m.py` | Native-resolution burn-scar metrics, 463 m MODIS sinusoidal |
+| `25_first_stage_diagnostic.R` | Reduced form vs first stage by subsample, Anderson-Rubin sets |
+| `26_plausibly_exogenous.R` | Conley-Hansen-Rossi bounds, γ calibrated from a zero-first-stage sample (van Kippersluis & Rietveld 2018) |
+| `27_seasonal_windows.R` | Five quarter-specific VPD windows against agriculture, fire and rescues |
+| `28_channel_triage.R` | Crop-year alignment, contamination gradient, channel sign |
 
-**Numbering collision.** The reconstructed `15` and `16` collide with the
-recovered `15_diagnostics_power.R` and `16_robustness_sweep.R`. Renumber before
-running anything. This is deliberate — a silent overwrite would be worse.
+Numbered from 23 so nothing collides with the recovered pipeline, which runs to
+22. The original container numbering was different; this is a renumbering, not a
+reordering.
 
-One bug already found and fixed by comparing against the recovered config: the
+One bug was already caught by diffing against the recovered config: the
 reconstructions called `save_fig(g, stub, w =, h =)` but the real signature is
-`save_fig(g, stub, width, height)`.
+`save_fig(g, stub, width, height)`. Fixed. Expect more of this kind — none of
+these seven files has ever executed.
 
 ### Lost and not recovered
 
@@ -67,11 +72,14 @@ Written in the container after the last Dropbox sync.
 | | Status |
 |---|---|
 | The consolidated 00–11 pipeline (25 scripts merged into 12, ~40 name collisions resolved) | Gone. The pre-consolidation versions above are the same science in a messier layout. |
-| `12_climate.py`, `degree_days.py` | TerraClimate pull and Schlenker-Roberts degree days. Full text is in the session transcript and can be rewritten. |
-| `13_weather_placebo.R`, `14_poisson_iv_gmm.R` | Recoverable from transcript but heavily patched; reconstruction would be approximate. |
-| `patch_metrics_500m.py` | Native-resolution burn-scar metrics. Recoverable from transcript. |
-| `first_stage_diagnostic.R` | Recoverable from transcript. |
+| `13_weather_placebo.R` | The positive-control battery and rainfall specification ladder. Recoverable from the transcript but patched many times by string replacement, so a reconstruction would be approximate. **Not attempted.** |
+| `14_poisson_iv_gmm.R` | Mullahy multiplicative-error GMM with Wooldridge quasi-differencing, plus two synthetic validation harnesses. Same caveat. **Not attempted.** |
 | `10_deck.js` | The 36-slide deck builder. Not recoverable. |
+
+The two un-attempted scripts are the ones where an approximate reconstruction
+would be actively dangerous — both carry estimators whose correctness depends on
+details that were patched in place. Rewriting them from scratch against the
+recovered `00_config.R` is safer than half-remembering them.
 
 ### Data — deliberately absent
 
@@ -103,8 +111,9 @@ municipality-quarter), the clustering scorecard, and the channel checks.
 
 ## Before running anything
 
-1. Renumber the three reconstructed scripts to avoid the 15/16 collision.
-2. Diff `run_all_ORIGINAL.sh` against the stage list and decide whether to
-   re-consolidate or stay with the original numbering.
-3. Point `DIR_DATA` at wherever the panel is restored to.
-4. The reconstructed scripts have never executed. Expect them to break.
+1. Point `DIR_DATA` in `00_config.R` at wherever the panel is restored to.
+2. Rebuild the panel, or restore it from a surviving copy. `00_config.R` asserts
+   `nrow == 5570 * 92`, so a partial panel fails loudly rather than quietly.
+3. Run the recovered pipeline first and confirm it reproduces the September
+   numbers before trusting anything numbered 23 or above.
+4. The seven reconstructed scripts have never executed. Expect them to break.
