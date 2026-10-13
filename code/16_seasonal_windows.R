@@ -202,7 +202,7 @@ g <- ggplot(pl, aes(x = win, y = b)) +
                          "year fixed effects, clustered on municipality, ",
                          min(y$year), "-", max(y$year), ".")) +
   theme_ff(9)
-save_fig(g, "fig_seasonal_windows", w = 11, h = 7)
+save_fig(g, "fig_seasonal_windows", width = 11, height = 7)
 
 say("")
 say("done")
