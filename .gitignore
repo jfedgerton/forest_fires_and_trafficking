@@ -1,0 +1,26 @@
+# Data never enters this repository. The separation is the point.
+*.csv
+*.csv.gz
+*.parquet
+*.nc
+*.tif
+*.rds
+*.zarr
+*.pptx
+*.pdf
+*.png
+*.jpg
+output/
+climate_tc/
+degdays/
+patch500/
+count_bootstrap/
+era5_*/
+cds_data_hist/
+mcd64_monthly/
+tifs/
+sidra_cache/
+*.log
+.Rhistory
+.RData
+__pycache__/
