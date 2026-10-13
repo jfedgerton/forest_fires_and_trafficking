@@ -339,8 +339,20 @@ N_MUNIS, N_QUARTERS = 5570, 92
 
 panel = pd.read_csv("analysis_panel_muni_quarter_2002_2024.csv.gz")
 econ = pd.read_csv("economic_controls_muni_year.csv")
-vab_ag = pd.read_csv("agricultural_controls_muni_year_2002_2021.csv")
-pam = pd.read_csv("pam_ppm_agriculture_muni_year_2002_2024.csv")
+# NOTE 2026-10-13: 03_acquire_sidra.py writes these WITHOUT the year suffixes and
+# run_all_ORIGINAL.sh does not rename, so the pipeline could not run end to end.
+# Row counts confirm the suffixes were descriptive, not filters (ag controls are
+# already 2002-2021 because SIDRA 5938 stops in 2021; PAM is already 2002-2024).
+# Reading whichever name is present.
+import os
+_ag = ("agricultural_controls_muni_year_2002_2021.csv"
+       if os.path.exists("agricultural_controls_muni_year_2002_2021.csv")
+       else "agricultural_controls_muni_year.csv")
+_pam = ("pam_ppm_agriculture_muni_year_2002_2024.csv"
+        if os.path.exists("pam_ppm_agriculture_muni_year_2002_2024.csv")
+        else "pam_ppm_agriculture_muni_year.csv")
+vab_ag = pd.read_csv(_ag)
+pam = pd.read_csv(_pam)
 log.info("panel %s | econ %s | vab_ag %s | pam %s",
          panel.shape, econ.shape, vab_ag.shape, pam.shape)
 
@@ -409,10 +421,15 @@ lines.append("      but it makes share_agro awkward to read as a proportion.")
 report = "\n".join(lines)
 open("final_panel_coverage_report.txt", "w").write(report + "\n")
 
+# NOTE 2026-10-13: the float64 -> float32 downcast that used to sit here was a
+# file-size optimization, but it truncated the treatment, the instrument and the
+# log1p outcome transforms to ~7 significant digits and the CSV write then
+# serialized them at that precision. Measured effect on headline estimates was
+# at most 4.2e-08 relative with no significance flips, so no published number
+# changes, but there is no reason to carry it. Integer downcasting is harmless
+# and is kept. Cost of removal is 32 MB -> 48 MB gzipped.
 for c in panel.columns:
-    if panel[c].dtype == "float64":
-        panel[c] = panel[c].astype("float32")
-    elif panel[c].dtype == "int64":
+    if panel[c].dtype == "int64":
         panel[c] = pd.to_numeric(panel[c], downcast="integer")
 
 panel.to_csv("final_panel_muni_quarter.csv.gz", index=False,
